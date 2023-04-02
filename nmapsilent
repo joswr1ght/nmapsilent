@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+# vim: set ft=python:
+import sys
+import re
+
+if (len(sys.argv) != 1):
+    sys.stderr.write('nmapsilent: convert the output of Nmap to one IP:PORT per line.\n')
+    sys.stderr.write('\nExample:\n\tnmap scanme.insecure.org -oA output | nmapsilent | othertools\n')
+
+    sys.exit(1)
+
+ip = None
+port = None
+
+for line in sys.stdin:
+
+    if 'Nmap scan report for ' in line:
+        match = re.search(r'Nmap scan report for\s(\S+)', line)
+        if match is not None:
+            ip = match.group(1)
+            port = None
+
+    if 'open' in line:
+        match = re.search(r'(\d+)\/(tcp|udp)\s+open', line)
+        if match is not None:
+            port = match.group(1)
+    else:
+        port = None
+
+    if (ip and port):
+        print(f'{ip}:{port}')
